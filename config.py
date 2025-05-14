@@ -7,7 +7,6 @@
     You can read more about the environment variables in the `.env.example`
     file.
 
-    Author: João Iacillo <john@iacillo.dev.br>
 """
 
 from os import getenv as os_getenv

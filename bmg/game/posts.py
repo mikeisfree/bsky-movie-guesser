@@ -32,9 +32,11 @@ class GamePosts:
         return f'{ahead.strftime("%d/%m/%Y, %I:%M%p")} UTC'
 
     @classmethod
-    def round(cls, round_number: int):
+    def round(cls, round_number: int, question_type: str = "Movie"):
+        """Creates text for a new round, with support for different question types"""
+        emoji = "🎥" if question_type == "Movie" else "🎮"
         return (
-            f'🎥 Guess the Movie! (Round #{round_number})\n\n'
+            f'{emoji} Guess the {question_type}! (Round #{round_number})\n\n'
             f'You have 30 minutes ({cls.after_30_min()}) to make '
             f'a guess. Good luck!\n\n'
             f'(TIP: {choice(cls.TIPS)})'
@@ -59,18 +61,20 @@ class GamePosts:
     @classmethod
     def results(
             cls,
-            movie: str,
+            answer: str,
             round_number: int,
             percent: int,
-            attempts: int
+            attempts: int,
+            question_type: str = "movie"
     ):
+        """Updated to support different question types"""
         if percent < 50:
             return (
                 f'😿 Well... it wasn\'t this time... (Round #'
                 f'{round_number})\n\n'
                 f'It looks like you achieved {percent}% of score. There have '
                 f'been {attempts} attempts from all of you.\n\n'
-                f'The movie was: {movie}.\n\n'
+                f'The {question_type} was: {answer}.\n\n'
                 'Keep trying! The next round starts in 30 minutes '
                 f'({cls.after_30_min()}).'
             )
@@ -80,7 +84,7 @@ class GamePosts:
             'This is the time you\'ve been waiting for! '
             f'Congratulations on achieving {percent}% of score! '
             f'There have been {attempts} attempts from all of you!\n\n'
-            f'The movie was: {movie}.\n\n'
+            f'The {question_type} was: {answer}.\n\n'
             f'The next round starts in 30 minutes ({cls.after_30_min()}).'
         )
 

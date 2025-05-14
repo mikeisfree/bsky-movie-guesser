@@ -1,13 +1,15 @@
 from datetime import datetime
 from logging import Logger
 from time import sleep
-from typing import Union
+from typing import Union, List
+import random
 
 from bmg.bsky import BskyClient
 from bmg.database import Database
 from bmg.database.rounds import RoundModel
 from bmg.image import ImagePreparer
 from bmg.matcher import Match
+from bmg.question_source import QuestionSource, Question
 from bmg.tmdb import Movie, TmdbClient, TmdbMovieUtils
 from bmg.types import GameState
 from .config import GameConfig
@@ -16,7 +18,7 @@ from .posts import GamePostUris, GamePosts
 
 class Game:
     """
-    TODO: Substitute the logs with database write.
+    Game controller that supports both movie guessing and general trivia.
     """
 
     def __init__(self, config: GameConfig):
@@ -26,7 +28,12 @@ class Game:
         self.db: Database = config.db
         self.logger: Logger = config.logger
         self.skip_on_input = config.skip_on_input
-
+        
+        # Support for multiple question sources
+        self.question_sources: List[QuestionSource] = config.question_sources or []
+        self.current_source = None
+        self.current_question = None
+        
         self.last_round: Union[RoundModel, None] = self.db.rounds.last_round()
 
         self.state: int = GameState.STOPPED
@@ -39,10 +46,11 @@ class Game:
         self.attempts = 0
         self.correct_attempts = 0
         self.percent = -1
-
+        
     def select_random_movie(self):
-        movie: Union[Movie, None] = None  # self.tmdb.get_random_movie()
-        backdrops: Union[list[bytes], None] = None  #
+        """Legacy method for backwards compatibility"""
+        movie: Union[Movie, None] = None
+        backdrops: Union[list[bytes], None] = None
 
         # Movies that have under 4 backdrops must not be selected.
         while backdrops is None:
@@ -56,11 +64,56 @@ class Game:
 
         self.logger.info(f'Selected movie: {movie.title}')
         self.movie = movie
+        
+    def select_random_question(self):
+        """Select a random question from available sources"""
+        if not self.question_sources:
+            # If no question sources are configured, fall back to movie selection
+            self.logger.info("No question sources configured, falling back to movie selection")
+            self.select_random_movie()
+            return
+            
+        # Select a random question source
+        self.current_source = random.choice(self.question_sources)
+        self.logger.info(f"Selected source: {self.current_source.get_source_name()}")
+        
+        # Get a random question from this source
+        self.current_question = self.current_source.get_random_question()
+        self.logger.info(f"Selected question with answer: {self.current_question.answer}")
+        
+        # For movie questions, store in the movie property for backwards compatibility
+        if self.current_source.get_source_name() == "Movie Trivia":
+            self.movie = Movie(
+                id=self.current_question.source_info.get("tmdb_id", 0),
+                title=self.current_question.answer,
+                release_date=self.current_question.source_info.get("release_date", ""),
+                cleaned_title=Match.clean(self.current_question.answer)
+            )
+            
+            # Process images if needed
+            processed_media = []
+            for media_item in self.current_question.media:
+                if self.current_source.requires_image_processing:
+                    processed_media.append(self.imgp.prepare(media_item.content_bytes))
+                else:
+                    processed_media.append(media_item.content_bytes)
+                    
+            self.movie.images = processed_media
 
     def get_reply_score(self, reply: str):
-        reply = Match.clean(reply)
-        score = Match.str(self.movie.cleaned_title, reply)
-        return score
+        """Get score for a reply using appropriate source"""
+        if self.current_source:
+            # Use the question source's evaluation method
+            return self.current_source.evaluate_answer(
+                reply, 
+                self.current_question.answer, 
+                self.threshold
+            )
+        else:
+            # Legacy method
+            reply = Match.clean(reply)
+            score = Match.str(self.movie.cleaned_title, reply)
+            return score
 
     def calculate_correctness_percentage(self):
         self.attempts = 0
@@ -113,10 +166,21 @@ class Game:
         self.round_number += 1
         self.logger.info(f'===== Round #{self.round_number} =====')
 
-        self.select_random_movie()
+        # Use new question source selection if available, otherwise use legacy
+        if hasattr(self, 'question_sources') and self.question_sources:
+            self.select_random_question()
+        else:
+            self.select_random_movie()
+            
+        # Customize post text based on question source
+        post_text = GamePosts.round(self.round_number)
+        if self.current_source:
+            post_text = f"🎮 BlueTrivia: {self.current_source.get_source_name()} 🎮\n\n"
+            post_text += self.current_question.question_text
+            post_text += f"\n\nYou have 30 minutes to make a guess. Good luck!"
 
         self.posts.round = self.bsky.post_images(
-                GamePosts.round(self.round_number),
+                post_text,
                 self.movie.images
         ).uri
 
