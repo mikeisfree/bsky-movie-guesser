@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Tournament - BlueTrivia Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+    }
+
+    .navbar {
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .card {
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      border: none;
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      font-weight: 500;
+    }
+
+    .card-header {
+      background-color: #f8f9fa;
+      border-bottom: 1px solid rgba(0, 0, 0, .125);
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="/admin">BlueTrivia Admin</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link active" href="/admin/tournaments">Tournaments</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/trivia">Trivia Questions</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/players">Players</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Back to Site</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container mt-4">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/admin">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="/admin/tournaments">Tournaments</a></li>
+        <li class="breadcrumb-item"><a href="/admin/tournaments/{{ tournament.id }}">{{ tournament.name }}</a></li>
+        <li class="breadcrumb-item active">Edit</li>
+      </ol>
+    </nav>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Edit Tournament</h2>
+      </div>
+      <div class="card-body">
+        {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="/admin/tournaments/{{ tournament.id }}/update">
+          <div class="mb-3">
+            <label for="name" class="form-label">Tournament Name</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ tournament.name }}" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Start Date</label>
+            <input type="text" class="form-control-plaintext" value="{{ tournament.start_date }}" readonly>
+            <small class="text-muted">Start date cannot be changed after creation.</small>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="duration_days" class="form-label">Duration (days)</label>
+              <input type="number" class="form-control" id="duration_days" name="duration_days" min="1"
+                value="{{ tournament.duration_days }}" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="questions_per_day" class="form-label">Questions Per Day</label>
+              <input type="number" class="form-control" id="questions_per_day" name="questions_per_day" min="1"
+                value="{{ tournament.questions_per_day }}" required>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header">Question Source Distribution</div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="movie_weight" class="form-label">Movie Questions Weight</label>
+                  <input type="range" class="form-range" id="movie_weight" name="movie_weight" min="0" max="1"
+                    step="0.1" value="{{ tournament.source_distribution.get('movie', 0.5) }}" oninput="updateWeights()">
+                  <div class="text-center" id="movie_weight_display">{{ (tournament.source_distribution.get('movie',
+                    0.5) * 100) | int }}%</div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="trivia_weight" class="form-label">Trivia Questions Weight</label>
+                  <input type="range" class="form-range" id="trivia_weight" name="trivia_weight" min="0" max="1"
+                    step="0.1" value="{{ tournament.source_distribution.get('trivia', 0.5) }}"
+                    oninput="updateWeights()">
+                  <div class="text-center" id="trivia_weight_display">{{ (tournament.source_distribution.get('trivia',
+                    0.5) * 100) | int }}%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header">Bonus Points Structure</div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="bonus_first" class="form-label">First Place Bonus</label>
+                  <input type="number" class="form-control" id="bonus_first" name="bonus_first" min="0"
+                    value="{{ tournament.bonus_first }}" required>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label for="bonus_second" class="form-label">Second Place Bonus</label>
+                  <input type="number" class="form-control" id="bonus_second" name="bonus_second" min="0"
+                    value="{{ tournament.bonus_second }}" required>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label for="bonus_third" class="form-label">Third Place Bonus</label>
+                  <input type="number" class="form-control" id="bonus_third" name="bonus_third" min="0"
+                    value="{{ tournament.bonus_third }}" required>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="active" name="active" {% if
+                tournament.active %}checked{% endif %}>
+              <label class="form-check-label" for="active">Active</label>
+            </div>
+            <small class="text-muted">Inactive tournaments won't generate new rounds.</small>
+          </div>
+
+          <div class="text-end">
+            <a href="/admin/tournaments/{{ tournament.id }}" class="btn btn-secondary me-2">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-light py-3 mt-5">
+    <div class="container text-center">
+      <p class="text-muted">BlueTrivia Admin &copy; 2023</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function updateWeights() {
+      const movieWeight = parseFloat(document.getElementById('movie_weight').value);
+      const triviaWeight = parseFloat(document.getElementById('trivia_weight').value);
+
+      // Update displays
+      document.getElementById('movie_weight_display').textContent = `${Math.round(movieWeight * 100)}%`;
+      document.getElementById('trivia_weight_display').textContent = `${Math.round(triviaWeight * 100)}%`;
+
+      // Normalize to ensure they sum to 1.0
+      const sum = movieWeight + triviaWeight;
+      if (sum > 0) {
+        const normalizedMovieWeight = movieWeight / sum;
+        const normalizedTriviaWeight = triviaWeight / sum;
+
+        document.getElementById('movie_weight').value = normalizedMovieWeight;
+        document.getElementById('trivia_weight').value = normalizedTriviaWeight;
+
+        document.getElementById('movie_weight_display').textContent = `${Math.round(normalizedMovieWeight * 100)}%`;
+        document.getElementById('trivia_weight_display').textContent = `${Math.round(normalizedTriviaWeight * 100)}%`;
+      }
+    }
+  </script>
+</body>
+
+</html>

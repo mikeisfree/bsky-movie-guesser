@@ -1,0 +1,65 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+}
+
+.navbar {
+  margin-bottom: 20px;
+}
+
+.card {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  font-weight: bold;
+}
+
+footer {
+  margin-top: 50px;
+  border-top: 1px solid #eee;
+  color: #666;
+}
+
+/* Leaderboard styles */
+.leaderboard-table .position-1 {
+  background-color: rgba(255, 215, 0, 0.1);
+}
+
+.leaderboard-table .position-2 {
+  background-color: rgba(192, 192, 192, 0.1);
+}
+
+.leaderboard-table .position-3 {
+  background-color: rgba(205, 127, 50, 0.1);
+}
+
+/* Player profile */
+.player-stats {
+  background-color: #e9f7fe;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+/* Tournament card */
+.tournament-card {
+  transition: transform 0.2s;
+}
+
+.tournament-card:hover {
+  transform: translateY(-5px);
+}
+
+.active-tournament {
+  border-left: 4px solid #198754;
+}
+
+.upcoming-tournament {
+  border-left: 4px solid #0d6efd;
+}
+
+.completed-tournament {
+  border-left: 4px solid #6c757d;
+}

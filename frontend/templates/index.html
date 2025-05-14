@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlueTrivia</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+    }
+
+    .hero {
+      background-color: #0066cc;
+      color: white;
+      padding: 4rem 0;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      border: none;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s;
+      margin-bottom: 1.5rem;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .feature-icon {
+      font-size: 2rem;
+      color: #0066cc;
+      margin-bottom: 0.5rem;
+    }
+
+    footer {
+      margin-top: 4rem;
+      padding: 2rem 0;
+      background-color: #343a40;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="/">BlueTrivia</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="/public">Public Stats</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/public/leaderboard">Leaderboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/public/tournaments">Tournaments</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/admin">Admin</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container text-center">
+      <h1 class="display-4">Welcome to BlueTrivia</h1>
+      <p class="lead">A trivia game bot for BlueSky with multiple question categories and tournaments.</p>
+      <div class="mt-4">
+        <a href="https://bsky.app/profile/bluetrivia.bsky.social" target="_blank" class="btn btn-light btn-lg mx-2">
+          Play on BlueSky <i class="bi bi-box-arrow-up-right"></i>
+        </a>
+        <a href="/public/leaderboard" class="btn btn-outline-light btn-lg mx-2">
+          View Leaderboard
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <div class="feature-icon">
+              <i class="bi bi-controller"></i>
+            </div>
+            <h3>Play Trivia</h3>
+            <p>Answer trivia questions across various categories including movies, science, history, and more!</p>
+            <p>Simply reply to the posts from @bluetrivia with your answers.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <div class="feature-icon">
+              <i class="bi bi-trophy"></i>
+            </div>
+            <h3>Join Tournaments</h3>
+            <p>Participate in scheduled tournaments and compete with other players for the top positions.</p>
+            <p>Earn points and climb the leaderboard!</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <div class="feature-icon">
+              <i class="bi bi-bar-chart"></i>
+            </div>
+            <h3>Track Stats</h3>
+            <p>View detailed statistics about your performance, success rate, and ranking compared to other players.</p>
+            <p>See how you measure up against the competition!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-5">
+      <div class="col-lg-6">
+        <h2>How It Works</h2>
+        <div class="card">
+          <div class="card-body">
+            <ol class="list-group list-group-flush">
+              <li class="list-group-item">Follow @bluetrivia on BlueSky</li>
+              <li class="list-group-item">Watch for trivia questions posted regularly</li>
+              <li class="list-group-item">Reply with your answer within the time limit</li>
+              <li class="list-group-item">See if you got it right when results are posted</li>
+              <li class="list-group-item">Check the leaderboard to see your ranking</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <h2>Current Tournament</h2>
+        <div class="card">
+          <div class="card-body text-center">
+            <h3>Summer Trivia Challenge</h3>
+            <p class="text-muted">June 1 - June 30, 2023</p>
+            <p>Join our monthly trivia tournament and compete for the top spot on the leaderboard!</p>
+            <a href="/public/tournaments" class="btn btn-primary">View All Tournaments</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container text-center">
+      <h4>BlueTrivia</h4>
+      <p>A trivia game bot for the BlueSky social network</p>
+      <div class="mt-3">
+        <a href="https://bsky.app/profile/bluetrivia.bsky.social" class="text-white me-3" target="_blank">
+          <i class="bi bi-box-arrow-up-right"></i> BlueSky
+        </a>
+        <a href="/admin" class="text-white me-3">
+          <i class="bi bi-gear"></i> Admin
+        </a>
+        <a href="https://github.com/yourusername/bluetrivia" class="text-white" target="_blank">
+          <i class="bi bi-github"></i> GitHub
+        </a>
+      </div>
+      <p class="mt-3 text-muted">© 2023 BlueTrivia</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
