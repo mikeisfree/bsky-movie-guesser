@@ -9,11 +9,10 @@ class RoundModel:
     rowid: int
     num: int
     state: int
-    movie: str
+    movie: str  # Keep as "movie" for backward compatibility
     posts: int
     percent: Union[int, None]
     attempts: Union[int, None]
-
     created_in: str
     ended_in: Union[str, None]
 
@@ -24,6 +23,7 @@ class Rounds:
         self.cursor = cursor
 
         self._create_table()
+        self._check_and_migrate_schema()
 
     def _create_table(self):
         query = """
@@ -43,17 +43,40 @@ class Rounds:
 
         self.cursor.execute(query)
 
-    def create(self, num: int, state: int, movie: str, posts_rowid: int):
+    def _check_and_migrate_schema(self):
+        """Check if we need to migrate the schema to add new columns"""
+        # Get current columns in the rounds table
+        self.cursor.execute("PRAGMA table_info(rounds)")
+        columns = [column[1] for column in self.cursor.fetchall()]
+        
+        # Add columns if they don't exist
+        if "QUESTION_SOURCE" not in columns:
+            self.cursor.execute("ALTER TABLE rounds ADD COLUMN QUESTION_SOURCE TEXT DEFAULT 'Movie Trivia'")
+        
+        if "QUESTION_TYPE" not in columns:
+            self.cursor.execute("ALTER TABLE rounds ADD COLUMN QUESTION_TYPE TEXT DEFAULT 'General'")
+            
+        if "TOURNAMENT_ID" not in columns:
+            self.cursor.execute("ALTER TABLE rounds ADD COLUMN TOURNAMENT_ID INTEGER")
+        
+        self.con.commit()
+
+    def create(self, num: int, state: int, movie: str, posts_rowid: int,
+               question_source: str = "Movie Trivia", question_type: str = "General", 
+               tournament_id: Union[int, None] = None):
         now = datetime.now().isoformat()
 
+        # Use MOVIE column name for backward compatibility
         query = """
-        INSERT INTO rounds (NUM, POSTS, MOVIE, CREATED_IN, STATE)
-            VALUES (?, ?, ?, ?, ?)
+        INSERT INTO rounds (NUM, POSTS, MOVIE, QUESTION_SOURCE, QUESTION_TYPE, 
+                          TOURNAMENT_ID, CREATED_IN, STATE)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         self.cursor.execute(
                 query,
-                (num, posts_rowid, movie, now, state)
+                (num, posts_rowid, movie, question_source, question_type, 
+                 tournament_id, now, state)
         )
         self.con.commit()
         return self.cursor.lastrowid
@@ -88,6 +111,18 @@ class Rounds:
     def update_ended_in(self, rowid: int, ended_in: int):
         query = 'UPDATE rounds SET ENDED_IN=? WHERE rowid=?'
         self.cursor.execute(query, (ended_in, rowid))
+        
+    def update_question_source(self, rowid: int, question_source: str):
+        query = 'UPDATE rounds SET QUESTION_SOURCE=? WHERE rowid=?'
+        self.cursor.execute(query, (question_source, rowid))
+        
+    def update_question_type(self, rowid: int, question_type: str):
+        query = 'UPDATE rounds SET QUESTION_TYPE=? WHERE rowid=?'
+        self.cursor.execute(query, (question_type, rowid))
+        
+    def update_tournament_id(self, rowid: int, tournament_id: int):
+        query = 'UPDATE rounds SET TOURNAMENT_ID=? WHERE rowid=?'
+        self.cursor.execute(query, (tournament_id, rowid))
 
     def delete(self, num: int):
         self.cursor.execute('DELETE from rounds WHERE NUM=?', (num,))

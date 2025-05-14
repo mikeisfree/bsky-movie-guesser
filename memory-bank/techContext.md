@@ -1,4 +1,4 @@
-# Technical Context: Bsky Movie Guesser
+# Technical Context: BlueTrivia
 
 ## Technologies Used
 
@@ -23,10 +23,12 @@
 ### Data Storage
 
 - **SQLite**: Database for storing game rounds, posts, and results
+- Custom database models for tracking player responses and tournaments
 
 ### Configuration
 
 - **Environment Variables**: Used for configuration settings (thresholds, API keys, etc.)
+- **dotenv**: Library for loading environment variables from .env files
 
 ## Development Setup
 
@@ -37,6 +39,8 @@
 - `BOT_THRESHOLD`: Threshold for fuzzy matching (default: 80)
 - `BSKY_USERNAME`: BlueSky username for the bot
 - `BSKY_PASSWORD`: BlueSky password for the bot
+- `DB_PATH`: Path to SQLite database (default: bluetrivia.db)
+- `SKIP_ON_INPUT`: Debug setting to allow skipping wait times (default: False)
 
 ### Project Structure
 

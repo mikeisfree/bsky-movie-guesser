@@ -1,9 +1,27 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from random import choice
+from typing import List, Optional
 
 from bmg.database.rounds import RoundModel
 from bmg.database.types import LatePostUri
+
+# Note: We'll add the import for PlayerResponseModel but make it conditional
+# to avoid import errors if the class doesn't exist yet
+try:
+    from bmg.database.player_responses import PlayerResponseModel
+except ImportError:
+    # Define a simple placeholder class if it doesn't exist yet
+    @dataclass
+    class PlayerResponseModel:
+        rowid: int
+        round_id: int
+        handle: str
+        response_text: str
+        is_correct: bool
+        score: int
+        response_time: str
+        position: int
 
 
 @dataclass
@@ -26,9 +44,13 @@ class GamePosts:
         'result.'
     )
 
+    # BlueSky post length limit
+    MAX_POST_LENGTH = 280  # Using 280 to be safe (actual limit is 300)
+
     @staticmethod
     def after_30_min():
-        ahead = datetime.now(timezone.utc) + timedelta(minutes=30)
+        # Changed to 1 minute for testing
+        ahead = datetime.now(timezone.utc) + timedelta(minutes=1)
         return f'{ahead.strftime("%d/%m/%Y, %I:%M%p")} UTC'
 
     @classmethod
@@ -37,8 +59,8 @@ class GamePosts:
         emoji = "🎥" if question_type == "Movie" else "🎮"
         return (
             f'{emoji} Guess the {question_type}! (Round #{round_number})\n\n'
-            f'You have 30 minutes ({cls.after_30_min()}) to make '
-            f'a guess. Good luck!\n\n'
+            f'You have 1 minute ({cls.after_30_min()}) to make ' # Changed to 1 minute
+            f'a guess. Good luck! (TEST MODE)\n\n'
             f'(TIP: {choice(cls.TIPS)})'
         )
 
@@ -61,32 +83,62 @@ class GamePosts:
     @classmethod
     def results(
             cls,
-            answer: str,
+            movie: str,
             round_number: int,
             percent: int,
             attempts: int,
-            question_type: str = "movie"
+            question_type: str = "movie",
+            top_players: Optional[List[PlayerResponseModel]] = None,
+            tournament_name: Optional[str] = None
     ):
-        """Updated to support different question types"""
+        """Updated to support different question types, top players, and tournaments
+        while enforcing BlueSky character limits"""
+        
+        # Base result text components
         if percent < 50:
-            return (
-                f'😿 Well... it wasn\'t this time... (Round #'
-                f'{round_number})\n\n'
-                f'It looks like you achieved {percent}% of score. There have '
-                f'been {attempts} attempts from all of you.\n\n'
-                f'The {question_type} was: {answer}.\n\n'
-                'Keep trying! The next round starts in 30 minutes '
-                f'({cls.after_30_min()}).'
-            )
+            base_components = [
+                f'😿 Round #{round_number}: {percent}% success.\n',
+                f'The {question_type} was: {movie}.\n',
+                f'Attempts: {attempts}\n'
+            ]
+        else:
+            base_components = [
+                f'🏆 Round #{round_number}: {percent}% success! Congrats!\n',
+                f'The {question_type} was: {movie}.\n',
+                f'Attempts: {attempts}\n'
+            ]
 
-        return (
-            f'🏆 You\'ve made it! (Round #{round_number})\n\n'
-            'This is the time you\'ve been waiting for! '
-            f'Congratulations on achieving {percent}% of score! '
-            f'There have been {attempts} attempts from all of you!\n\n'
-            f'The {question_type} was: {answer}.\n\n'
-            f'The next round starts in 30 minutes ({cls.after_30_min()}).'
-        )
+        # Optional components
+        player_components = []
+        if top_players and len(top_players) > 0:
+            player_components.append("🥇 Fastest correct answers:\n")
+            medals = ["🥇", "🥈", "🥉"]
+            for i, player in enumerate(top_players):
+                if i < len(medals):
+                    medal = medals[i]
+                    player_components.append(f"{medal} @{player.handle}\n")
+
+        # Tournament component
+        tournament_component = []
+        if tournament_name:
+            tournament_component = [f"🏆 Tournament: {tournament_name}\n"]
+
+        # Next round info is always included
+        next_round_component = [f'Next round in 1 min ({cls.after_30_min()})']
+        
+        # Combine all components, ensuring we don't exceed character limit
+        all_components = base_components + player_components + tournament_component + next_round_component
+        
+        # Start with base components and add others until we hit the limit
+        result_text = ""
+        for component in all_components:
+            if len(result_text) + len(component) <= cls.MAX_POST_LENGTH:
+                result_text += component
+            else:
+                # If adding next component would exceed limit, stop
+                break
+        
+        return result_text
 
     @staticmethod
     def error(last_round: RoundModel):

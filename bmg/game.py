@@ -18,8 +18,8 @@ class GameConfig:
     db: Database
     question_sources: List[QuestionSource]
     threshold: int = 80
-    round_time_seconds: int = 1800  # 30 minutes
-    wait_between_rounds_seconds: int = 300  # 5 minutes
+    round_time_seconds: int = 60  # 1 minute (changed from 1800 for testing)
+    wait_between_rounds_seconds: int = 60  # 1 minute (changed from 300 for testing)
 
 
 class GameController:
@@ -123,7 +123,7 @@ class GameController:
         source_name = self.current_source.get_source_name()
         post_text = f"🎮 BlueTrivia: {source_name} 🎮\n\n"
         post_text += self.current_question.question_text
-        post_text += f"\n\nYou have {self.round_time_seconds // 60} minutes to reply with your answer!"
+        post_text += f"\n\nYou have {self.round_time_seconds // 60} minute to reply with your answer! (TEST MODE)"
         
         # Post to BlueSky with media attachments
         post_id = self.bsky.post_with_images(
@@ -184,9 +184,14 @@ class GameController:
         # Build results text
         results_text = f"📊 BlueTrivia Results 📊\n\n"
         results_text += f"The answer was: {self.current_question.answer}\n\n"
-        results_text += f"Success rate: {self.percent}%\n"
-        results_text += f"Correct guesses: {self.correct_attempts}/{self.attempts}\n\n"
-        results_text += f"A new round will start in {self.wait_between_rounds_seconds // 60} minutes! Stay tuned 🎲"
+        
+        if self.attempts > 0:
+            results_text += f"Success rate: {self.percent}%\n"
+            results_text += f"Correct guesses: {self.correct_attempts}/{self.attempts}\n\n"
+        else:
+            results_text += "No one attempted to answer this question!\n\n"
+        
+        results_text += f"A new round will start in {self.wait_between_rounds_seconds // 60} minute! (TEST MODE) 🎲"
         
         # Post results as reply to question post
         self.bsky.post_as_reply(

@@ -1,11 +1,8 @@
-import random
 import sqlite3
 from typing import List, Optional
 
-from fuzzywuzzy import fuzz
-
-from bmg.question_source import QuestionSource, Question, QuestionMedia
 from bmg.matcher import Match
+from bmg.question_source import QuestionSource, Question, QuestionMedia
 
 
 class TriviaQuestionSource(QuestionSource):
@@ -13,8 +10,7 @@ class TriviaQuestionSource(QuestionSource):
     
     def __init__(self, db_path: str):
         self.db_path = db_path
-        self._ensure_table_exists()
-    
+        
     def get_random_question(self) -> Question:
         """Returns a random trivia question from the database"""
         with sqlite3.connect(self.db_path) as conn:
@@ -49,8 +45,8 @@ class TriviaQuestionSource(QuestionSource):
         return "General Trivia"
     
     def evaluate_answer(self, user_answer: str, correct_answer: str, threshold: int = 80) -> int:
-        """Evaluates trivia answer using the existing matcher"""
-        # Use existing Match utility
+        """Evaluates trivia answer using fuzzy matching"""
+        # Use Match utility for consistency
         user_clean = Match.clean(user_answer)
         correct_clean = Match.clean(correct_answer)
         

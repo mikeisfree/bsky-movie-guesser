@@ -1,11 +1,11 @@
-# Product Context: Bsky Movie Guesser
+# Product Context: BlueTrivia
 
 ## Why This Project Exists
 
-The Bsky Movie Guesser bot creates an engaging, interactive experience for BlueSky users by providing a fun, low-barrier game that anyone can participate in. The project aims to:
+The BlueTrivia bot creates an engaging, interactive experience for BlueSky users by providing a fun, low-barrier game that anyone can participate in. The project aims to:
 
 1. Foster community engagement on the BlueSky platform
-2. Provide entertainment through movie trivia
+2. Provide entertainment through various trivia categories
 3. Create a recurring activity that users look forward to
 4. Demonstrate creative bot usage in the BlueSky ecosystem
 
@@ -20,24 +20,26 @@ The Bsky Movie Guesser bot creates an engaging, interactive experience for BlueS
 
 From the user perspective:
 
-1. Users discover a post with four partially censored movie images
-2. The post indicates a 30-minute window to submit guesses
-3. Users reply with their guess of the movie title
-4. After 30 minutes, users see a follow-up post showing:
-   - The correct movie title
+1. Users discover a post with a trivia question (either text-based or images)
+2. The post indicates a time window to submit guesses (currently 1 minute for testing)
+3. Users reply with their guess
+4. After the time window, users see a follow-up post showing:
+   - The correct answer
    - Success percentage (% of correct guesses)
    - Total number of attempts
+   - Top performers who answered correctly first
 5. A new round begins automatically
 
 From the bot perspective:
 
-1. Select a random movie with sufficient images
-2. Process images (optimize, censor, watermark)
-3. Create post with the processed images
-4. Monitor replies for the time window
-5. Evaluate guesses using fuzzy matching
-6. Calculate and post results
-7. Begin next round
+1. Select a random question source (movie or trivia)
+2. Get a question from the selected source
+3. Process any media if needed (optimize, censor, watermark)
+4. Create post with the question and any processed media
+5. Monitor replies for the time window
+6. Evaluate guesses using fuzzy matching
+7. Calculate and post results, highlighting fastest correct answers
+8. Begin next round
 
 ## User Experience Goals
 
@@ -45,12 +47,13 @@ From the bot perspective:
 - **Fairness**: Reasonable difficulty level and proper evaluation of answers
 - **Consistency**: Regular posting schedule and reliable evaluation
 - **Engagement**: Visually appealing posts that attract participation
-- **Community**: Foster friendly competition and movie discussions
-- **Satisfaction**: Clear feedback on results and acknowledgment of participation
+- **Community**: Foster friendly competition and knowledge sharing
+- **Recognition**: Acknowledge fast and accurate responders
+- **Satisfaction**: Clear feedback on results
 
 ## Target Audience
 
-- BlueSky users with interest in movies
+- BlueSky users with interest in trivia and games
 - Casual gamers looking for quick, easy-to-join activities
 - Movie enthusiasts who enjoy testing their knowledge
 - General BlueSky community looking for interactive content

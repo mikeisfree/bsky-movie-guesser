@@ -9,11 +9,13 @@
 import os
 import sys
 import logging
+import dotenv as dotenv
+import time  # Import time explicitly for timestamp generation
 
 from bmg.bsky import BskyClient
 from bmg.database import Database
-from bmg.game.config import GameConfig
-from bmg.game.game import Game
+from bmg.database_init import initialize_trivia_database
+from bmg.game import Game, GameConfig
 from bmg.image import ImagePreparer
 from bmg.sources.movie_source import MovieQuestionSource
 from bmg.sources.trivia_source import TriviaQuestionSource
@@ -32,37 +34,26 @@ def setup_logger():
     logger.addHandler(handler)
     
     # File handler
-    file_handler = logging.FileHandler("bluetrivia.log")
+    # Use the existing logs directory structure for consistent logging
+    os.makedirs('.logs', exist_ok=True)
+    log_filename = f".logs/{int(time.time())}.log"
+    file_handler = logging.FileHandler(log_filename)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
     
     return logger
 
 
-def add_sample_trivia_questions(trivia_source):
-    """Adds sample trivia questions if none exist"""
-    try:
-        # Try to get a random question - if this succeeds, we have questions
-        trivia_source.get_random_question()
-    except ValueError:
-        # No questions found, add sample questions
-        print("Adding sample trivia questions...")
-        
-        sample_questions = [
-            ("What is the capital of France?", "Paris", "Geography"),
-            ("Who wrote 'Romeo and Juliet'?", "William Shakespeare", "Literature"),
-            ("What is the chemical symbol for gold?", "Au", "Science"),
-            ("What year did the Titanic sink?", "1912", "History"),
-            ("How many sides does a hexagon have?", "6", "Mathematics")
-        ]
-        
-        for question, answer, category in sample_questions:
-            trivia_source.add_question(question, answer, category)
-
-
 def main():
     """Entry point for BlueTrivia"""
-    print("Starting BlueTrivia...")
+    print("Starting BlueTrivia (test mode with 1-minute rounds)...")
+    
+    # Load environment variables from .env file
+    dotenv.load_dotenv()
+    print("Environment variables loaded from .env file")
+    
+    # Set up logger before initializing components
+    logger = setup_logger()
     
     # Load configuration from environment variables
     tmdb_api_key = os.environ.get("TMDB_API_KEY")
@@ -76,26 +67,28 @@ def main():
     # Validate required configuration
     if not all([tmdb_api_key, bsky_username, bsky_password]):
         print("Missing required environment variables.")
-        print("Please set TMDB_API_KEY, BSKY_USERNAME, and BSKY_PASSWORD.")
+        print("Please set TMDB_API_KEY, BSKY_USERNAME, and BSKY_PASSWORD in the .env file.")
         sys.exit(1)
     
-    # Set up logger
-    logger = setup_logger()
+    # Initialize the database with sample trivia questions
+    print("Initializing trivia database...")
+    initialize_trivia_database(db_path)
+    print("Database initialized with sample questions")
     
     # Initialize components
-    bsky_client = BskyClient(bsky_username, bsky_password)
+    # Pass the logger to components that require it
+    bsky_client = BskyClient(bsky_username, bsky_password, logger)
     tmdb_client = TmdbClient(tmdb_api_key)
-    image_preparer = ImagePreparer(tmdb_image_quality)
-    database = Database(db_path)
+    image_preparer = ImagePreparer(tmdb_image_quality, logger)  # Added logger parameter
+    database = Database(db_path, logger)  # Added logger parameter
     
     # Initialize question sources
     movie_source = MovieQuestionSource(tmdb_client)
     trivia_source = TriviaQuestionSource(db_path)
     
-    # Add some initial trivia questions if the database is new
-    add_sample_trivia_questions(trivia_source)
+    print("Component initialization complete")
     
-    # Configure game controller
+    # Configure game controller with 1-minute rounds for testing
     config = GameConfig(
         bsky=bsky_client,
         tmdb=tmdb_client,
@@ -106,6 +99,8 @@ def main():
         skip_on_input=skip_on_input,
         question_sources=[movie_source, trivia_source]
     )
+    
+    print("Starting game with 1-minute rounds...")
     
     # Start game loop
     game = Game(config)
