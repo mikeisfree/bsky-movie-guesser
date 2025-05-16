@@ -24,23 +24,36 @@
 
   - Schema created
   - Player tracking mechanism implemented
-  - Tournament creation and scoring not yet implemented
+  - Tournament creation UI implemented
+  - Tournament scoring partially implemented
 
 - 🔄 Player statistics and leaderboards
+
   - Basic tracking implemented
-  - UI for displaying leaderboards not implemented
+  - Dashboard statistics UI implemented
   - Player commands to view stats not implemented
+
+- 🔄 Admin frontend interface
+  - Basic structure implemented
+  - Tournament management UI created
+  - Question management UI created
+  - Authentication system in testing stage
+- 🔄 Public statistics frontend
+  - Dashboard with overall statistics implemented
+  - Leaderboard tabs implemented
+  - Tournament progress display implemented
+  - Player profiles not yet implemented
 
 ### Not Started
 
-- ⏳ Web interface for leaderboards and statistics
-- ⏳ Additional question sources beyond movies and trivia
 - ⏳ Advanced analytics for game performance
-- ⏳ Admin controls for game parameters
+- ⏳ Admin controls for game parameters beyond tournaments
+- ⏳ User authentication for player statistics
+- ⏳ Mobile app version
 
 ## Current Status
 
-The bot is operational in test mode with 1-minute rounds. It successfully:
+The core bot is operational in test mode with 1-minute rounds. It successfully:
 
 1. Selects random questions from multiple sources
 2. Posts questions with appropriate formatting
@@ -49,7 +62,12 @@ The bot is operational in test mode with 1-minute rounds. It successfully:
 5. Posts results (with character limit management)
 6. Continues to new rounds automatically
 
-There are still some issues with BlueSky post character limits when trying to include detailed player information in result posts.
+The frontend implementation is under active development and testing:
+
+1. The admin interface allows tournament creation and management
+2. The dashboard shows overall game statistics and leaderboards
+3. Database migrations handle missing columns in existing tables
+4. Direct connection to the SQLite database is functioning
 
 ## Known Issues
 
@@ -57,6 +75,10 @@ There are still some issues with BlueSky post character limits when trying to in
 - Database schema migrations need careful handling for backward compatibility
 - Error handling for API failures could be more robust
 - Tournament functionality is partially implemented but not fully tested
+- Frontend database connections occasionally report column missing errors
+- Admin authentication is minimal for testing purposes
+- Some UI elements need mobile responsiveness improvements
+- Direct SQLite connection may have concurrency limitations with multiple users
 
 ## Evolution of Project Decisions
 
@@ -65,3 +87,5 @@ There are still some issues with BlueSky post character limits when trying to in
 - Started with exact string matching, moved to fuzzy matching for better user experience
 - Originally had fixed post formats, now uses component-based format to handle character limits
 - Added player tracking and response timing to support leaderboards and tournaments
+- Expanded from pure bot functionality to include web frontend components
+- Evolved database schema to support tournaments, detailed statistics, and frontend needs

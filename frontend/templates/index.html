@@ -43,6 +43,72 @@
       background-color: #343a40;
       color: white;
     }
+
+    .stats-card {
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stats-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #0066cc;
+    }
+
+    .stats-label {
+      color: #6c757d;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .nav-pills .nav-link.active {
+      background-color: #0066cc;
+    }
+
+    .winner-card {
+      padding: 1rem;
+      border-left: 4px solid #28a745;
+    }
+
+    .progress {
+      height: 25px;
+      font-size: 0.9rem;
+      background-color: #e9ecef;
+    }
+
+    .tournament-item {
+      border-left: 4px solid #0066cc;
+      padding-left: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    some-selector-for-line-196 {
+      background-image: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    }
+
+    some-selector-for-line-200 {
+      background-image: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    }
+
+    some-selector-for-line-212 {
+      background-image: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    }
+
+    some-selector-for-line-216 {
+      background-image: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    }
+
+    some-selector-for-line-232 {
+      background-image: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    }
+
+    some-selector-for-line-250 {
+      background-image: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    }
+
+    some-selector-for-line-266 {
+      background-image: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    }
   </style>
 </head>
 
@@ -56,13 +122,13 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <a class="nav-link" href="/public">Public Stats</a>
+            <a class="nav-link active" href="/">Dashboard</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/public/leaderboard">Leaderboard</a>
+            <a class="nav-link" href="/admin/tournaments">Tournaments</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/public/tournaments">Tournaments</a>
+            <a class="nav-link" href="/admin/trivia">Questions</a>
           </li>
         </ul>
         <ul class="navbar-nav ms-auto">
@@ -76,85 +142,269 @@
 
   <section class="hero">
     <div class="container text-center">
-      <h1 class="display-4">Welcome to BlueTrivia</h1>
-      <p class="lead">A trivia game bot for BlueSky with multiple question categories and tournaments.</p>
-      <div class="mt-4">
-        <a href="https://bsky.app/profile/bluetrivia.bsky.social" target="_blank" class="btn btn-light btn-lg mx-2">
-          Play on BlueSky <i class="bi bi-box-arrow-up-right"></i>
-        </a>
-        <a href="/public/leaderboard" class="btn btn-outline-light btn-lg mx-2">
-          View Leaderboard
-        </a>
-      </div>
+      <h1 class="display-4">BlueTrivia Dashboard</h1>
+      <p class="lead">Real-time statistics and leaderboards for the BlueSky trivia game</p>
     </div>
   </section>
 
   <section class="container">
+    <!-- Key Statistics Cards -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card stats-card">
+          <div class="stats-number">{{ stats.total_rounds }}</div>
+          <div class="stats-label">Total Rounds</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stats-card">
+          <div class="stats-number">{{ stats.total_players }}</div>
+          <div class="stats-label">Players</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stats-card">
+          <div class="stats-number">{{ stats.success_rate }}%</div>
+          <div class="stats-label">Average Success Rate</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card stats-card">
+          <div class="stats-number">{{ stats.total_answers }}</div>
+          <div class="stats-label">Total Answers</div>
+        </div>
+      </div>
+    </div>
+
     <div class="row">
-      <div class="col-md-4">
-        <div class="card h-100">
-          <div class="card-body text-center">
-            <div class="feature-icon">
-              <i class="bi bi-controller"></i>
+      <!-- Recent Winners -->
+      <div class="col-lg-6">
+        <div class="card mb-4">
+          <div class="card-header bg-white">
+            <h4 class="mb-0">Recent Round Winners</h4>
+          </div>
+          <div class="card-body">
+            {% if recent_winners %}
+            {% for winner in recent_winners %}
+            <div class="winner-card mb-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="mb-1">{{ winner.display_name or winner.handle }}</h5>
+                  <small class="text-muted">Round #{{ winner.round_id }} • {{ winner.question_type|capitalize }}</small>
+                </div>
+                <span class="badge bg-success">Winner</span>
+              </div>
+              {% if winner.question %}
+              <small class="d-block text-muted mt-2">Question: {{ winner.question }}</small>
+              {% endif %}
             </div>
-            <h3>Play Trivia</h3>
-            <p>Answer trivia questions across various categories including movies, science, history, and more!</p>
-            <p>Simply reply to the posts from @bluetrivia with your answers.</p>
+            {% endfor %}
+            {% else %}
+            <div class="text-center p-4">
+              <p class="text-muted">No recent winners found</p>
+            </div>
+            {% endif %}
           </div>
         </div>
       </div>
 
-      <div class="col-md-4">
-        <div class="card h-100">
-          <div class="card-body text-center">
-            <div class="feature-icon">
-              <i class="bi bi-trophy"></i>
-            </div>
-            <h3>Join Tournaments</h3>
-            <p>Participate in scheduled tournaments and compete with other players for the top positions.</p>
-            <p>Earn points and climb the leaderboard!</p>
+      <!-- Answer Distribution -->
+      <div class="col-lg-6">
+        <div class="card mb-4">
+          <div class="card-header bg-white">
+            <h4 class="mb-0">Answer Distribution</h4>
           </div>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="card h-100">
-          <div class="card-body text-center">
-            <div class="feature-icon">
-              <i class="bi bi-bar-chart"></i>
+          <div class="card-body">
+            <div class="mb-4">
+              <div class="d-flex justify-content-between mb-2">
+                <span>Overall Correct vs. Incorrect</span>
+                <span>{{ stats.success_rate }}%</span>
+              </div>
+              <!-- <div class="progress">
+                <div class="progress-bar bg-success" role="progressbar" style="width: {{ stats.success_rate }}%"
+                  aria-valuenow="{{ stats.success_rate }}" aria-valuemin="0" aria-valuemax="100">
+                  Correct ({{ stats.success_rate }}%)
+                </div>
+                <div class="progress-bar bg-danger" role="progressbar" style="width: {{ 100 - stats.success_rate }}%"
+                  aria-valuenow="{{ 100 - stats.success_rate }}" aria-valuemin="0" aria-valuemax="100">
+                  Incorrect ({{ 100 - stats.success_rate }}%)
+                </div>
+              </div> -->
             </div>
-            <h3>Track Stats</h3>
-            <p>View detailed statistics about your performance, success rate, and ranking compared to other players.</p>
-            <p>See how you measure up against the competition!</p>
+
+            {% if category_stats %}
+            <h5 class="mt-4">By Category</h5>
+            {% for category in category_stats %}
+            <div class="mb-3">
+              <div class="d-flex justify-content-between mb-1">
+                <span>{{ category.name }}</span>
+                <span>{{ category.success_rate }}%</span>
+              </div>
+              <!-- <div class="progress" style="height: 20px;">
+                <div class="progress-bar bg-info" role="progressbar" style="width: {{ category.success_rate }}%"
+                  aria-valuenow="{{ category.success_rate }}" aria-valuemin="0" aria-valuemax="100">
+                  {{ category.success_rate }}%
+                </div>
+              </div> -->
+            </div>
+            {% endfor %}
+            {% endif %}
           </div>
         </div>
       </div>
     </div>
 
-    <div class="row mt-5">
+    <div class="row">
+      <!-- Active Tournaments -->
       <div class="col-lg-6">
-        <h2>How It Works</h2>
-        <div class="card">
+        <div class="card mb-4">
+          <div class="card-header bg-white">
+            <h4 class="mb-0">Active Tournaments</h4>
+          </div>
           <div class="card-body">
-            <ol class="list-group list-group-flush">
-              <li class="list-group-item">Follow @bluetrivia on BlueSky</li>
-              <li class="list-group-item">Watch for trivia questions posted regularly</li>
-              <li class="list-group-item">Reply with your answer within the time limit</li>
-              <li class="list-group-item">See if you got it right when results are posted</li>
-              <li class="list-group-item">Check the leaderboard to see your ranking</li>
-            </ol>
+            {% if active_tournaments %}
+            {% for tournament in active_tournaments %}
+            <div class="tournament-item">
+              <h5>{{ tournament.name }}</h5>
+              <div class="d-flex justify-content-between text-muted">
+                <span>Started: {{ tournament.start_date }}</span>
+                <span>{{ tournament.days_remaining }} days left</span>
+              </div>
+              <div class="d-flex justify-content-between mt-2">
+                <span>{{ tournament.questions_completed }} / {{ tournament.total_questions }} questions</span>
+                <span>{{ tournament.player_count }} players</span>
+              </div>
+              <!-- <div class="progress mt-2" style="height: 10px;">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ tournament.progress }}%"
+                  aria-valuenow="{{ tournament.progress }}" aria-valuemin="0" aria-valuemax="100">
+                </div>
+              </div> -->
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-center p-4">
+              <p class="text-muted">No active tournaments</p>
+              <a href="/admin/tournaments/new" class="btn btn-primary mt-2">Create Tournament</a>
+            </div>
+            {% endif %}
           </div>
         </div>
       </div>
 
+      <!-- Leaderboard -->
       <div class="col-lg-6">
-        <h2>Current Tournament</h2>
         <div class="card">
-          <div class="card-body text-center">
-            <h3>Summer Trivia Challenge</h3>
-            <p class="text-muted">June 1 - June 30, 2023</p>
-            <p>Join our monthly trivia tournament and compete for the top spot on the leaderboard!</p>
-            <a href="/public/tournaments" class="btn btn-primary">View All Tournaments</a>
+          <div class="card-header bg-white">
+            <h4 class="mb-0">Leaderboards</h4>
+            <ul class="nav nav-pills mt-3" id="leaderboardTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="all-time-tab" data-bs-toggle="pill" data-bs-target="#all-time"
+                  type="button" role="tab" aria-controls="all-time" aria-selected="true">All Time</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tournament-tab" data-bs-toggle="pill" data-bs-target="#tournament"
+                  type="button" role="tab" aria-controls="tournament" aria-selected="false">Tournament</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="monthly-tab" data-bs-toggle="pill" data-bs-target="#monthly" type="button"
+                  role="tab" aria-controls="monthly" aria-selected="false">This Month</button>
+              </li>
+            </ul>
+          </div>
+          <div class="card-body">
+            <div class="tab-content" id="leaderboardTabsContent">
+              <!-- All Time Leaderboard -->
+              <div class="tab-pane fade show active" id="all-time" role="tabpanel" aria-labelledby="all-time-tab">
+                {% if all_time_leaders %}
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Rank</th>
+                      <th>Player</th>
+                      <th>Correct</th>
+                      <th>Total</th>
+                      <th>Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for player in all_time_leaders %}
+                    <tr>
+                      <td>{{ loop.index }}</td>
+                      <td>{{ player.display_name or player.handle }}</td>
+                      <td>{{ player.correct_count }}</td>
+                      <td>{{ player.attempt_count }}</td>
+                      <td>{{ player.success_rate }}%</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+                {% else %}
+                <div class="text-center p-4">
+                  <p class="text-muted">No player data available</p>
+                </div>
+                {% endif %}
+              </div>
+
+              <!-- Tournament Leaderboard -->
+              <div class="tab-pane fade" id="tournament" role="tabpanel" aria-labelledby="tournament-tab">
+                {% if tournament_leaders %}
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Rank</th>
+                      <th>Player</th>
+                      <th>Points</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for player in tournament_leaders %}
+                    <tr>
+                      <td>{{ loop.index }}</td>
+                      <td>{{ player.display_name or player.handle }}</td>
+                      <td>{{ player.total_points }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+                {% else %}
+                <div class="text-center p-4">
+                  <p class="text-muted">No tournament data available</p>
+                </div>
+                {% endif %}
+              </div>
+
+              <!-- Monthly Leaderboard -->
+              <div class="tab-pane fade" id="monthly" role="tabpanel" aria-labelledby="monthly-tab">
+                {% if monthly_leaders %}
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Rank</th>
+                      <th>Player</th>
+                      <th>Correct</th>
+                      <th>Total</th>
+                      <th>Rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for player in monthly_leaders %}
+                    <tr>
+                      <td>{{ loop.index }}</td>
+                      <td>{{ player.display_name or player.handle }}</td>
+                      <td>{{ player.correct_count }}</td>
+                      <td>{{ player.attempt_count }}</td>
+                      <td>{{ player.success_rate }}%</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+                {% else %}
+                <div class="text-center p-4">
+                  <p class="text-muted">No data available for this month</p>
+                </div>
+                {% endif %}
+              </div>
+            </div>
           </div>
         </div>
       </div>

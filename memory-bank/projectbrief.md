@@ -2,7 +2,7 @@
 
 ## Overview
 
-BlueTrivia (formerly Bsky Movie Guesser) is a BlueSky social media bot that runs an automated trivia game with multiple question types. The bot posts questions (including partially censored movie images for movie trivia and text-based questions for general trivia), allows users to guess the answers, and then reports the results.
+BlueTrivia (formerly Bsky Movie Guesser) is a BlueSky social media bot that runs an automated trivia game with multiple question types. The bot posts questions (including partially censored movie images for movie trivia and text-based questions for general trivia), allows users to guess the answers, and then reports the results. The project now includes a web-based frontend for administration and public statistics.
 
 ## Core Requirements
 
@@ -26,8 +26,19 @@ BlueTrivia (formerly Bsky Movie Guesser) is a BlueSky social media bot that runs
 - Run continuously and autonomously
 - Respect BlueSky's 300 character post limit
 
+### Frontend Requirements (New)
+
+- Provide admin interface for tournament management
+- Display public statistics and leaderboards
+- Allow CRUD operations for trivia questions
+- Show real-time game status and player rankings
+- Connect to the existing SQLite database
+- Support responsive design for mobile and desktop
+
 ## Future Expansion
 
-- Player scorecards and statistics tracking
-- Tournament functionality with scheduled rounds
-- Web interface for leaderboards and game statistics
+- Advanced player scorecards and statistics tracking
+- Full tournament functionality with scheduled rounds
+- Enhanced web interface with user accounts
+- Additional question sources and categories
+- API-based integration with other services

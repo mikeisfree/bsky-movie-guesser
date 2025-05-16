@@ -24,6 +24,53 @@ def check_database_access():
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         cursor.execute("PRAGMA user_version")
+        
+        # Print database table information
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = cursor.fetchall()
+        print(f"✅ Found {len(tables)} tables in database: {', '.join(t[0] for t in tables)}")
+        
+        # Check for players
+        try:
+            cursor.execute("SELECT COUNT(*) FROM players")
+            player_count = cursor.fetchone()[0]
+            print(f"✅ Found {player_count} players in database")
+        except sqlite3.OperationalError:
+            print("⚠️ No players table found in database")
+        
+        # Check for responses
+        try:
+            cursor.execute("SELECT COUNT(*) FROM player_responses")
+            response_count = cursor.fetchone()[0]
+            print(f"✅ Found {response_count} player responses in database")
+            
+            # Check correct/is_correct column
+            try:
+                cursor.execute("PRAGMA table_info(player_responses)")
+                columns = [column[1] for column in cursor.fetchall()]
+                if 'correct' in columns:
+                    cursor.execute("SELECT COUNT(*) FROM player_responses WHERE correct = 1")
+                    correct_count = cursor.fetchone()[0]
+                    print(f"✅ Found {correct_count} correct answers (using 'correct' column)")
+                elif 'is_correct' in columns:
+                    cursor.execute("SELECT COUNT(*) FROM player_responses WHERE is_correct = 1")
+                    correct_count = cursor.fetchone()[0]
+                    print(f"✅ Found {correct_count} correct answers (using 'is_correct' column)")
+                else:
+                    print("⚠️ No correct/is_correct column found in player_responses")
+            except Exception as e:
+                print(f"⚠️ Error checking correct answers: {e}")
+        except sqlite3.OperationalError:
+            print("⚠️ No player_responses table found in database")
+        
+        # Check for tournaments
+        try:
+            cursor.execute("SELECT COUNT(*) FROM tournaments")
+            tournament_count = cursor.fetchone()[0]
+            print(f"✅ Found {tournament_count} tournaments in database")
+        except sqlite3.OperationalError:
+            print("⚠️ No tournaments table found in database")
+        
         cursor.execute("BEGIN TRANSACTION")
         cursor.execute("ROLLBACK")
         conn.close()
@@ -76,9 +123,10 @@ if __name__ == "__main__":
         print(f"❌ Database initialization error: {e}")
         print("Attempting to continue anyway...")
     
+    print("\n=== BlueTrivia Frontend ===")
     print("Starting FastAPI application on http://0.0.0.0:8000")
-    print("- Admin interface: http://0.0.0.0:8000/admin (username: admin, password: admin)")
-    print("- Public stats: http://0.0.0.0:8000/public")
+    print("- Main Dashboard: http://0.0.0.0:8000/")
+    print("- Admin interface: http://0.0.0.0:8000/admin")
     
     # Run the FastAPI application
     try:

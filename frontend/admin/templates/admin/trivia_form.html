@@ -129,7 +129,7 @@
           </div>
 
           <div class="mb-3" id="imagePreview"
-            style="display: {% if question and question.image_url %}block{% else %}none{% endif %};">
+            data-visible="{% if question and question.image_url %}true{% else %}false{% endif %}">
             <label class="form-label">Image Preview</label>
             <div class="text-center p-2 border rounded">
               <img src="{{ question.image_url if question else '' }}" class="img-fluid" style="max-height: 200px;"
@@ -194,6 +194,18 @@
       } else {
         preview.style.display = 'none';
       }
+    });
+
+    // Handle image preview visibility
+    document.addEventListener('DOMContentLoaded', function () {
+      const imagePreview = document.getElementById('imagePreview');
+      if (imagePreview) {
+        const isVisible = imagePreview.getAttribute('data-visible') === 'true';
+        imagePreview.style.display = isVisible ? 'block' : 'none';
+      }
+
+      // The rest of your existing script goes here
+      // ...
     });
   </script>
 </body>

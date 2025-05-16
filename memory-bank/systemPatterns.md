@@ -16,6 +16,10 @@ graph TD
     IP --> IO[Image Optimizer]
     IP --> IC[Image Censor]
     IP --> IW[Image Watermarker]
+
+    DB --> FE[Frontend]
+    FE --> AUI[Admin UI]
+    FE --> PUI[Public Stats UI]
 ```
 
 ## Key Components
@@ -76,6 +80,27 @@ Three-stage pipeline for image preparation:
    - Consistent positioning
    - Transparency handling
 
+### Frontend Components (New)
+
+The frontend follows a classic MVC pattern:
+
+1. **Models**
+
+   - Database connection and access layer
+   - Object representation of database entities
+   - Data validation and transformation
+
+2. **Views**
+
+   - Jinja2 templates for HTML rendering
+   - Bootstrap for responsive styling
+   - Tabbed interfaces for data organization
+
+3. **Controllers**
+   - FastAPI routes with dependency injection
+   - Authentication via HTTP Basic Auth
+   - Database connection management
+
 ## Critical Implementation Paths
 
 ### Game Flow
@@ -103,6 +128,29 @@ sequenceDiagram
     GC->>DB: Update statistics
 ```
 
+### Frontend Flow (New)
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant FE as FastAPI
+    participant DB as Database
+    participant Templates as Jinja2
+
+    User->>FE: Request page
+    FE->>DB: Query data
+    DB->>FE: Return results
+    FE->>Templates: Render with data
+    Templates->>User: Return HTML
+
+    alt Admin Action
+        User->>FE: POST form data
+        FE->>DB: Write data
+        DB->>FE: Confirm write
+        FE->>User: Redirect or confirm
+    end
+```
+
 ### Response Processing
 
 1. Reply Collection
@@ -113,29 +161,21 @@ sequenceDiagram
    - Fuzzy matching with configurable threshold
    - Position-based tracking for fastest answers
 
-```python
-@staticmethod
-def clean(string: str) -> str:
-    cleaned = string.strip()
-    cleaned = ''.join(c for c in cleaned
-                     if c.isalnum() or c.isspace())
-    return cleaned
-
-@staticmethod
-def match(a: str, b: str) -> int:
-    return fuzz.ratio(a, b)
-```
-
 ## Component Relationships
 
-### Database Schema
+### Database Schema (Updated)
 
 ```mermaid
 erDiagram
     ROUNDS ||--o{ POSTS : contains
     ROUNDS ||--o{ PLAYER_RESPONSES : tracks
+    ROUNDS }o--|| TOURNAMENTS : belongs_to
     TOURNAMENTS ||--o{ ROUNDS : includes
     PLAYER_RESPONSES }|--|| PLAYERS : made_by
+    TOURNAMENTS ||--o{ TOURNAMENT_RESULTS : calculates
+    TOURNAMENT_RESULTS }|--|| PLAYERS : ranks
+    PLAYER_RESPONSES ||--o{ ROUND_RESULTS : generates
+    TRIVIA_QUESTIONS ||--o{ ROUNDS : used_in
 ```
 
 ### Configuration Flow
@@ -144,11 +184,19 @@ erDiagram
 graph LR
     ENV[Environment Variables] --> GC[Game Config]
     GC --> Components
+    ENV --> FE[Frontend Config]
+    FE --> WebComponents
     subgraph Components
         BC[BlueSky Client]
         TC[TMDB Client]
         IP[Image Preparer]
         DB[Database]
+    end
+    subgraph WebComponents
+        API[FastAPI App]
+        Admin[Admin Routes]
+        Public[Public Routes]
+        Templates[Jinja2 Templates]
     end
 ```
 
@@ -168,8 +216,19 @@ graph LR
    - Image processor instantiation
 
 4. **Repository Pattern**
+
    - Database access
    - API client implementations
+
+5. **MVC Pattern** (New)
+
+   - Model: Database entities
+   - View: Jinja2 templates
+   - Controller: FastAPI routes
+
+6. **Dependency Injection** (New)
+   - FastAPI dependency system
+   - Database connection management
 
 ## Error Handling and Recovery
 
@@ -186,9 +245,15 @@ graph LR
    - Round integrity checks
 
 3. **Resource Management**
+
    - Memory-efficient image processing
    - Connection pooling
    - Cache management
+
+4. **Frontend Errors** (New)
+   - Graceful UI degradation
+   - User-friendly error messages
+   - Default values when data missing
 
 ## Performance Considerations
 
@@ -205,6 +270,13 @@ graph LR
    - Batch operations
 
 3. **API Interactions**
+
    - Rate limiting compliance
    - Response caching
    - Bulk operations where possible
+
+4. **Frontend Performance** (New)
+   - Minimal JavaScript usage
+   - Server-side rendering
+   - Bootstrap for efficient styling
+   - Query optimization for dashboard statistics

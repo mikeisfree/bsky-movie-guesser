@@ -555,6 +555,25 @@ async def create_trivia(
             status_code=400
         )
 
+@admin_router.post("/trivia/{question_id}/delete")
+async def delete_trivia_question(question_id: int):
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            # First check if the question exists
+            cursor.execute("SELECT id FROM trivia_questions WHERE id = ?", (question_id,))
+            if not cursor.fetchone():
+                raise HTTPException(status_code=404, detail="Question not found")
+            
+            # Delete the question
+            cursor.execute("DELETE FROM trivia_questions WHERE id = ?", (question_id,))
+            conn.commit()
+        
+        return RedirectResponse(url="/admin/trivia", status_code=303)
+    except Exception as e:
+        print(f"Error deleting trivia question: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Player management routes
 @admin_router.get("/players", response_class=HTMLResponse)
 async def list_players(

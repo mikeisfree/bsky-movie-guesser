@@ -6,6 +6,12 @@
 
 - **Python**: Primary programming language
 
+### Web Framework (New)
+
+- **FastAPI**: Web framework for admin and statistics interfaces
+- **Jinja2**: Template engine for HTML rendering
+- **Bootstrap**: CSS framework for responsive design
+
 ### APIs
 
 - **TMDB API**: Source of movie data and images
@@ -41,8 +47,10 @@
 - `BSKY_PASSWORD`: BlueSky password for the bot
 - `DB_PATH`: Path to SQLite database (default: bluetrivia.db)
 - `SKIP_ON_INPUT`: Debug setting to allow skipping wait times (default: False)
+- `ADMIN_USERNAME`: Username for admin interface (default: admin)
+- `ADMIN_PASSWORD`: Password for admin interface (default: admin)
 
-### Project Structure
+### Project Structure (Updated)
 
 ```
 bsky-movie-guesser/
@@ -53,6 +61,7 @@ bsky-movie-guesser/
 │   ├── tmdb.py      # TMDB client
 │   ├── image.py     # Image processing
 │   ├── database.py  # Database operations
+│   ├── admin.py     # Admin interface (New)
 │   └── utils.py     # Utility functions
 ├── main.py          # Entry point
 ├── config.py        # Configuration loading
@@ -87,6 +96,9 @@ bsky-movie-guesser/
 - `fuzzywuzzy`: String matching
 - `python-Levenshtein`: Optional accelerator for fuzzywuzzy
 - `sqlite3`: Database interaction (standard library)
+- `fastapi`: Web framework for admin and statistics interfaces (New)
+- `jinja2`: Template engine for HTML rendering (New)
+- `bootstrap`: CSS framework for responsive design (New)
 
 ### Third-Party Services
 

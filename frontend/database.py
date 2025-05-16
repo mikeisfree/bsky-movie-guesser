@@ -41,7 +41,7 @@ def get_db() -> Generator[Connection, None, None]:
 
 
 def init_db():
-    """Initialize the database with necessary tables if they don't exist"""
+    """Initialize the database with necessary tables and add missing columns"""
     with get_db() as conn:
         cursor = conn.cursor()
         
@@ -50,24 +50,109 @@ def init_db():
         existing_tables = [table[0] for table in cursor.fetchall()]
         print(f"Existing tables: {existing_tables}")
         
-        # Create tournaments table if it doesn't exist
-        if 'tournaments' not in existing_tables:
+        # Check player_responses table structure to determine if it uses 'correct' or 'is_correct'
+        correct_column_name = None
+        try:
+            cursor.execute("PRAGMA table_info(player_responses)")
+            columns = [column[1] for column in cursor.fetchall()]
+            
+            if 'correct' in columns:
+                correct_column_name = 'correct'
+            elif 'is_correct' in columns:
+                correct_column_name = 'is_correct'
+            
+            print(f"Using '{correct_column_name}' as the correctness column in player_responses")
+            
+            # If neither column exists, add one
+            if correct_column_name is None and 'player_responses' in existing_tables:
+                print("Adding 'correct' column to player_responses table")
+                cursor.execute("ALTER TABLE player_responses ADD COLUMN correct BOOLEAN")
+                correct_column_name = 'correct'
+        except Exception as e:
+            print(f"Error checking player_responses table: {e}")
+        
+        # Check if tournaments table exists and add missing column if needed
+        if 'tournaments' in existing_tables:
+            # Check if duration_days column exists
+            cursor.execute("PRAGMA table_info(tournaments)")
+            columns = [column[1] for column in cursor.fetchall()]
+            
+            if 'duration_days' not in columns:
+                print("Adding duration_days column to tournaments table")
+                cursor.execute("ALTER TABLE tournaments ADD COLUMN duration_days INTEGER NOT NULL DEFAULT 7")
+            
+            # Check and add other potentially missing columns
+            if 'questions_per_day' not in columns:
+                print("Adding questions_per_day column to tournaments table")
+                cursor.execute("ALTER TABLE tournaments ADD COLUMN questions_per_day INTEGER NOT NULL DEFAULT 4")
+            
+            if 'source_distribution' not in columns:
+                print("Adding source_distribution column to tournaments table")
+                cursor.execute("ALTER TABLE tournaments ADD COLUMN source_distribution TEXT NOT NULL DEFAULT '{\"movie\": 0.5, \"trivia\": 0.5}'")
+                
+            if 'bonus_first' not in columns:
+                print("Adding bonus points columns to tournaments table")
+                cursor.execute("ALTER TABLE tournaments ADD COLUMN bonus_first INTEGER NOT NULL DEFAULT 10")
+                cursor.execute("ALTER TABLE tournaments ADD COLUMN bonus_second INTEGER NOT NULL DEFAULT 5")
+                cursor.execute("ALTER TABLE tournaments ADD COLUMN bonus_third INTEGER NOT NULL DEFAULT 3")
+                
+            if 'active' not in columns:
+                print("Adding active column to tournaments table")
+                cursor.execute("ALTER TABLE tournaments ADD COLUMN active BOOLEAN NOT NULL DEFAULT 1")
+        else:
+            # Create tournaments table if it doesn't exist
             print("Creating tournaments table")
             cursor.execute('''
             CREATE TABLE tournaments (
                 id INTEGER PRIMARY KEY,
                 name TEXT NOT NULL,
                 start_date TIMESTAMP NOT NULL,
-                duration_days INTEGER NOT NULL,
-                questions_per_day INTEGER NOT NULL,
-                source_distribution TEXT NOT NULL,  -- JSON string
-                bonus_first INTEGER NOT NULL,
-                bonus_second INTEGER NOT NULL, 
-                bonus_third INTEGER NOT NULL,
+                duration_days INTEGER NOT NULL DEFAULT 7,
+                questions_per_day INTEGER NOT NULL DEFAULT 4,
+                source_distribution TEXT NOT NULL DEFAULT '{"movie": 0.5, "trivia": 0.5}',
+                bonus_first INTEGER NOT NULL DEFAULT 10,
+                bonus_second INTEGER NOT NULL DEFAULT 5,
+                bonus_third INTEGER NOT NULL DEFAULT 3,
                 active BOOLEAN NOT NULL DEFAULT 1
             )
             ''')
-        
+            
+        # Check if trivia_questions table exists and add missing column if needed
+        if 'trivia_questions' in existing_tables:
+            # Check if image_url column exists
+            cursor.execute("PRAGMA table_info(trivia_questions)")
+            columns = [column[1] for column in cursor.fetchall()]
+            
+            if 'image_url' not in columns:
+                print("Adding image_url column to trivia_questions table")
+                cursor.execute("ALTER TABLE trivia_questions ADD COLUMN image_url TEXT")
+        else:
+            # Create trivia_questions table if it doesn't exist
+            print("Creating trivia_questions table")
+            cursor.execute('''
+            CREATE TABLE trivia_questions (
+                id INTEGER PRIMARY KEY,
+                category TEXT NOT NULL,
+                question TEXT NOT NULL,
+                answer TEXT NOT NULL,
+                difficulty TEXT DEFAULT 'medium',
+                image_url TEXT
+            )
+            ''')
+            
+            # Insert some sample trivia questions
+            sample_questions = [
+                ('Movies', 'What 1994 film had the tagline "Life is like a box of chocolates"?', 'Forrest Gump', 'easy', None),
+                ('Science', 'What is the chemical symbol for gold?', 'Au', 'easy', None),
+                ('History', 'Who was the first president of the United States?', 'George Washington', 'easy', None),
+                ('Geography', 'What is the capital of Japan?', 'Tokyo', 'easy', None),
+                ('Sports', 'Which sport is played at Wimbledon?', 'Tennis', 'easy', None)
+            ]
+            cursor.executemany(
+                'INSERT INTO trivia_questions (category, question, answer, difficulty, image_url) VALUES (?, ?, ?, ?, ?)', 
+                sample_questions
+            )
+            
         # Create tournament_results table if it doesn't exist
         if 'tournament_results' not in existing_tables:
             print("Creating tournament_results table")
@@ -95,8 +180,6 @@ def init_db():
                 points_earned INTEGER NOT NULL
             )
             ''')
-            
-        # Add additional tables only if needed
         
         # Ensure all changes are committed
         conn.commit()
