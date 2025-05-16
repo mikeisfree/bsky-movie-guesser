@@ -45,6 +45,20 @@ def init_db():
     with get_db() as conn:
         cursor = conn.cursor()
         
+        # Create players table if it doesn't exist
+        print("Creating players table if not exists")
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS players (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            handle TEXT UNIQUE NOT NULL,
+            display_name TEXT,
+            total_points INTEGER DEFAULT 0,
+            correct_guesses INTEGER DEFAULT 0,
+            total_guesses INTEGER DEFAULT 0,
+            first_seen INTEGER NOT NULL DEFAULT (strftime('%s', 'now'))
+        )
+        ''')
+        
         # Query existing tables
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         existing_tables = [table[0] for table in cursor.fetchall()]
@@ -103,17 +117,19 @@ def init_db():
             # Create tournaments table if it doesn't exist
             print("Creating tournaments table")
             cursor.execute('''
-            CREATE TABLE tournaments (
-                id INTEGER PRIMARY KEY,
+            CREATE TABLE IF NOT EXISTS tournaments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
-                start_date TIMESTAMP NOT NULL,
+                start_time INTEGER NOT NULL,
+                end_time INTEGER NOT NULL,
                 duration_days INTEGER NOT NULL DEFAULT 7,
                 questions_per_day INTEGER NOT NULL DEFAULT 4,
                 source_distribution TEXT NOT NULL DEFAULT '{"movie": 0.5, "trivia": 0.5}',
                 bonus_first INTEGER NOT NULL DEFAULT 10,
                 bonus_second INTEGER NOT NULL DEFAULT 5,
                 bonus_third INTEGER NOT NULL DEFAULT 3,
-                active BOOLEAN NOT NULL DEFAULT 1
+                is_active BOOLEAN DEFAULT TRUE,
+                total_rounds INTEGER DEFAULT 0
             )
             ''')
             
@@ -181,5 +197,50 @@ def init_db():
             )
             ''')
         
+        # Drop existing triggers first
+        print("Dropping existing triggers")
+        cursor.execute("DROP TRIGGER IF EXISTS register_player_on_response")
+        cursor.execute("DROP TRIGGER IF EXISTS update_player_stats_on_response")
+        
+        # Create trigger for automatic player registration
+        print("Creating trigger for automatic player registration")
+        cursor.execute('''
+        CREATE TRIGGER IF NOT EXISTS register_player_on_response
+        AFTER INSERT ON player_responses
+        WHEN NOT EXISTS (
+            SELECT 1 FROM players WHERE handle = NEW.handle
+        )
+        BEGIN
+            INSERT INTO players (
+                handle, 
+                first_seen, 
+                total_points,
+                total_guesses,
+                correct_guesses
+            )
+            VALUES (
+                NEW.handle, 
+                NEW.response_time,
+                CASE WHEN NEW.is_correct = 1 OR NEW.correct = 1 THEN 1 ELSE 0 END,
+                1,
+                CASE WHEN NEW.is_correct = 1 OR NEW.correct = 1 THEN 1 ELSE 0 END
+            );
+        END;
+        ''')
+
+        # Create trigger to update player stats
+        print("Creating trigger for automatic player stats update")
+        cursor.execute('''
+        CREATE TRIGGER IF NOT EXISTS update_player_stats_on_response
+        AFTER INSERT ON player_responses
+        BEGIN
+            UPDATE players 
+            SET total_guesses = total_guesses + 1,
+                correct_guesses = correct_guesses + CASE WHEN NEW.is_correct = 1 OR NEW.correct = 1 THEN 1 ELSE 0 END,
+                total_points = total_points + CASE WHEN NEW.is_correct = 1 OR NEW.correct = 1 THEN 1 ELSE 0 END
+            WHERE handle = NEW.handle;
+        END;
+        ''')
+
         # Ensure all changes are committed
         conn.commit()
